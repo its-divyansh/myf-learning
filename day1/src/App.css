@@ -1,0 +1,18 @@
+.Home{
+    /* background-color: #cc4c4c; */
+    margin:auto;
+    color : white;
+    text-align: center;
+    width: 40%;
+}
+.signup{
+    background-color: rgb(193, 153, 153);
+    width : 50%;
+    margin : auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+input{
+     display: block;
+}
