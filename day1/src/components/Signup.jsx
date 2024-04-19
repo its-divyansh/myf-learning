@@ -13,6 +13,8 @@ import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { IconButton, InputAdornment } from "@mui/material";
 
 const defaultTheme = createTheme();
 
@@ -25,6 +27,7 @@ export default function SignUp() {
   const [email, setEmail] = useState('');
   const [emailHelperText, setEmailHelperText] = useState('');
   const [password,setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [passwordHelperText,setPasswordHelperText] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [confirmPasswordHelperText, setConfirmPasswordHelperText] = useState('');
@@ -87,6 +90,9 @@ const handlePasswordChange = (e)=>{
   }
   else setPasswordHelperText('');
 }
+const handleClickShowPassword =()=>{
+  setShowPassword(!showPassword);
+}
 const handleConfirmPasswordChange = (e)=>{
   setConfirmPassword(e.target.value);
   setConfirmPasswordHelperText('');
@@ -97,23 +103,15 @@ const handleConfirmPasswordChange = (e)=>{
     if(password!==confirmPassword){
       setConfirmPasswordHelperText("Password and Confirm Password doesn't match")
     }
-    else{      
-      const new_user ={firstName,lastName,email,password};
-      const users = JSON.parse(localStorage.getItem('dev'));
-      // console.log(typeof users);
-      const result = users.some((data)=>email ===data.email);
-      if(result){
+    else{
+      let users = JSON.parse(localStorage.getItem('dev')); 
+      if(users===null)users={};      
+      if(users[email]!==undefined){
         setEmailHelperText("Email already exists!")
       }
       else{
-      users.push(new_user);
-      // console.log(users);
-      localStorage.setItem("dev", JSON.stringify(users));
-      setFirstName('');
-      setLastName('');
-      setEmail('');
-      setPassword('');
-      setConfirmPassword('');
+      users[email]={firstName, lastName, password};
+      localStorage.setItem("dev",JSON.stringify(users));
       navigate('/login');
       }
     }
@@ -193,13 +191,26 @@ const handleConfirmPasswordChange = (e)=>{
                   fullWidth
                   name="password"
                   label="Password"
-                  type="password"
+                  type={showPassword?"text":"password"}
                   id="password"
                   autoComplete="new-password"
                   value ={password}
                   onChange={handlePasswordChange}
                   error={passwordHelperText.length>0}
                   helperText = {passwordHelperText}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        {password.length>0 && <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={handleClickShowPassword}
+                          edge="end"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>}
+                      </InputAdornment>
+                    ),
+                  }}
                 />
               </Grid>
               <Grid item xs={12}>

@@ -12,20 +12,28 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { IconButton, InputAdornment } from "@mui/material";
 
 const defaultTheme = createTheme();
 
-const EditUser = ({user,edit}) => {
+const EditUser = () => {
+    const location = useLocation();
+    if(location.state===null)navigate('/login');
+    const user=location.state.user;
     const [firstName, setFirstName] =useState(user.firstName);
     const [firstNameHelperText, setFirstNameHelperText] =useState('');
     const [lastName, setLastName] =useState(user.lastName);
     const [lastNameHelperText, setLastNameHelperText] =useState('');
     const [password,setPassword] = useState(user.password);
+    const [showPassword, setShowPassword] = useState(false);
     const [passwordHelperText,setPasswordHelperText] = useState('');
    
     const navigate = useNavigate();
-    
+  const handleClickShowPassword = ()=>{
+    setShowPassword(!showPassword);
+  }
   const handleFirstNameChange =(e)=>{
     setFirstName(e.target.value);
     const result = [...(e.target.value)]
@@ -75,9 +83,11 @@ const EditUser = ({user,edit}) => {
   
     const handleSubmit = (event) => {
       event.preventDefault();
-           
-        const new_user ={firstName,lastName,password,email:user.email};
-        edit(new_user);
+        const new_user ={firstName,lastName,password};
+        const users= JSON.parse(localStorage.getItem("dev"));
+        users[user.email]=new_user;
+        localStorage.setItem('dev', JSON.stringify(users));
+        navigate('/user', {state:{email:location.state.email}});
       
     };
    
@@ -152,13 +162,26 @@ const EditUser = ({user,edit}) => {
                     fullWidth
                     name="password"
                     label="Password"
-                    type="password"
+                    type={showPassword?"text":"password"}
                     id="password"
                     autoComplete="new-password"
                     value ={password}
                     onChange={handlePasswordChange}
                     error={passwordHelperText.length>0}
                     helperText = {passwordHelperText}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          {password.length>0 && <IconButton
+                            aria-label="toggle password visibility"
+                            onClick={handleClickShowPassword}
+                            edge="end"
+                          >
+                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                          </IconButton>}
+                        </InputAdornment>
+                      ),
+                    }}
                   />
                 </Grid>
                 

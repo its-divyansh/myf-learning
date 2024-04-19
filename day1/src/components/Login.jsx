@@ -13,6 +13,8 @@ import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useNavigate,Link as RouterLink } from "react-router-dom";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { IconButton, InputAdornment } from "@mui/material";
 
 const defaultTheme = createTheme();
 
@@ -20,6 +22,8 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [emailHelperText, setEmailHelperText] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword]= useState(false);
+  const [passwordHelperText, setPasswordHelperText] = useState("");
   const navigate = useNavigate();
 
   const handleEmailChange = (e) => {
@@ -33,21 +37,27 @@ export default function Login() {
     }
   };
   const handlePasswordChange = (e) => {
+    setPasswordHelperText('');
     setPassword(e.target.value);
+
   };
+  const handleClickShowPassword =()=>{
+    setShowPassword(!showPassword);
+  }
   const handleSubmit = (event) => {
     event.preventDefault();
     const users = JSON.parse(localStorage.getItem("dev"));
-    const check = users.filter(
-      (data) => data.email == email && data.password == password
-    );
-    if (check.length === 0) {
-      console.log("invalid username or password");
-      setEmail("");
+    if (users[email]===undefined)
+    {
+      setEmailHelperText("Email is not registered!");
+      setPassword("");
+    } 
+    else if( users[email].password !==password) {
+      setPasswordHelperText("Wrong Password!");
       setPassword("");
     }
     else{
-      navigate('/user', {state:{email:email }});
+      navigate('/user', {state:{email}});
     }
   };
 
@@ -95,11 +105,26 @@ export default function Login() {
               fullWidth
               name="password"
               label="Password"
-              type="password"
+              type={showPassword?"text":"password"}
               id="password"
               autoComplete="current-password"
               value={password}
               onChange={handlePasswordChange}
+              error={passwordHelperText.length > 0}
+              helperText={passwordHelperText}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    {password.length>0 && <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={handleClickShowPassword}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>}
+                  </InputAdornment>
+                ),
+              }}
             />
             {/* <FormControlLabel
               control={<Checkbox value="remember" color="primary" />}
@@ -110,7 +135,7 @@ export default function Login() {
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
-              disabled = {email.length===0 || password.length===0 || emailHelperText.length>0}
+              disabled = {email.length===0 || password.length===0 || emailHelperText.length>0 || passwordHelperText.length>0}
             >
               Sign In
             </Button>
