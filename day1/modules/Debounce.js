@@ -1,10 +1,10 @@
-export default function Debounce(fn, delay =2000){
+export default function Debounce(fn, delay =1000){
   let timer;
-  return (...args)=>{
-    if(!timer){
-        fn.apply(this,args);
+  return function (...args) {
+    if(timer){
+      clearTimeout(timer);
     }
-    clearTimeout(timer);
-    timer = setTimeout(()=>{timer=undefined},delay);
-  }
-}
+       
+    timer = setTimeout(()=>{fn(...args);},delay);
+  };
+};

@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useCallback } from "react";
 import {
   Avatar,
   Button,
@@ -20,6 +20,7 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 import Debounce from "../../modules/Debounce";
 import UsersContext from "../context/UsersContext";
+// import lodash from 'lodash'
 const defaultTheme = createTheme();
 
 
@@ -47,7 +48,7 @@ export default function SignUp() {
 
 
   const handleTextError = (user) => {
-    // console.log("inside validation");
+    console.log("inside validation");
     const { firstName, lastName, email, password, confirmPassword } = user;
     const helper = {};
     if (firstName.length === 0) {
@@ -106,7 +107,10 @@ export default function SignUp() {
     setHelperText(helper);
   };
 
-  const handleHelperText = Debounce(handleTextError);
+  const handleHelperText = useCallback(Debounce(handleTextError,2000),[]);
+
+
+   
   const handleOnChange = (e, name) => {
     switch (name) {
       case "firstName":
@@ -134,6 +138,7 @@ export default function SignUp() {
 
   //   timer =setTimeout(()=>{handleTextError({...user, [name]: e.target.value}); console.log("Validated");
   // console.log();}, 1000);
+    // console.log("increased");
     handleHelperText({...user, [name]: e.target.value});
   };
 
