@@ -1,4 +1,4 @@
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -19,8 +19,9 @@ import { IconButton, InputAdornment } from "@mui/material";
 const defaultTheme = createTheme();
 
 const EditUser = () => {
-    const location = useLocation();
-    if(location.state===null)navigate('/login');
+  const navigate = useNavigate();
+  const location = useLocation();
+    
     const user=location.state.user;
     const [firstName, setFirstName] =useState(user.firstName);
     const [firstNameHelperText, setFirstNameHelperText] =useState('');
@@ -30,7 +31,6 @@ const EditUser = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [passwordHelperText,setPasswordHelperText] = useState('');
    
-    const navigate = useNavigate();
   const handleClickShowPassword = ()=>{
     setShowPassword(!showPassword);
   }
@@ -90,6 +90,10 @@ const EditUser = () => {
         navigate('/user', {state:{email:location.state.email}});
       
     };
+
+    useEffect(()=>{
+      if(location.state===null)navigate('/login');
+    },[]);
    
     return (
       <ThemeProvider theme={defaultTheme}>
@@ -154,6 +158,7 @@ const EditUser = () => {
                     name="email"
                     autoComplete="email"
                     value={user.email}
+                    disabled
                   />
                 </Grid>
                 <Grid item xs={12}>

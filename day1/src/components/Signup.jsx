@@ -1,122 +1,164 @@
-import {useState} from "react";
-import Avatar from "@mui/material/Avatar";
-import Button from "@mui/material/Button";
-import CssBaseline from "@mui/material/CssBaseline";
-import TextField from "@mui/material/TextField";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Checkbox from "@mui/material/Checkbox";
-import Link from "@mui/material/Link";
-import Grid from "@mui/material/Grid";
-import Box from "@mui/material/Box";
+import { useContext, useState } from "react";
+import {
+  Avatar,
+  Button,
+  CssBaseline,
+  TextField,
+  FormControlLabel,
+  Checkbox,
+  Link,
+  Grid,
+  Box,
+  Typography,
+  Container,
+  IconButton,
+  InputAdornment,
+} from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import Typography from "@mui/material/Typography";
-import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { IconButton, InputAdornment } from "@mui/material";
-
+import { useNavigate, Link as RouterLink } from "react-router-dom";
+import Debounce from "../../modules/Debounce";
+import UsersContext from "../context/UsersContext";
 const defaultTheme = createTheme();
 
+var timer;
 export default function SignUp() {
-
-  const [firstName, setFirstName] =useState('');
-  const [firstNameHelperText, setFirstNameHelperText] =useState('');
-  const [lastName, setLastName] =useState('');
-  const [lastNameHelperText, setLastNameHelperText] =useState('');
-  const [email, setEmail] = useState('');
-  const [emailHelperText, setEmailHelperText] = useState('');
-  const [password,setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [passwordHelperText,setPasswordHelperText] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [confirmPasswordHelperText, setConfirmPasswordHelperText] = useState('');
- 
   const navigate = useNavigate();
+  const {users, setUsers}= useContext(UsersContext);
+  const [user, setUser] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    showPassword: false,
+  });
+
+  const [helperText, setHelperText] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+
+
+  const handleTextError = (user) => {
+    console.log("inside validation");
+    const { firstName, lastName, email, password, confirmPassword } = user;
+    const helper = {};
+    if (firstName.length === 0) {
+      helper.firstName = "";
+    } else {
+      let result = [...firstName].every(
+        (char) => (char >= "a" && char <= "z") || (char >= "A" && char <= "Z")
+      );
+
+      if (!result) {
+        console.log("inside firstname");
+        helper.firstName = "First name must only contain alphabets";
+      } else if (firstName.length < 3) {
+        console.log("inside firstname length 3")
+        helper.firstName = "First Name must contain atleast 3 characters";
+      } else {
+        helper.firstName = "";
+      }
+    }
+    if (lastName.length === 0) helper.lastName = "";
+    else {
+      let result = [...lastName].every(
+        (char) => (char >= "a" && char <= "z") || (char >= "A" && char <= "Z")
+      );
+
+      if (!result) {
+        helper.lastName = "Last Name must only contain alphabets";
+      } else if (lastName.length < 3) {
+        helper.lastName = "Last Name must contain atleast 3 characters";
+      } else {
+        helper.lastName = "";
+      }
+    }
+    if (email.length === 0) helper.email = "";
+    else {
+      let pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      let result = pattern.test(email);
+      if (result === false) {
+        helper.email = "Invalid Email";
+      } else {
+        helper.email = "";
+      }
+    }
+    if (password.length === 0) helper.password = "";
+    else {
+      let pattern = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{7,15}$/;
+      let result = pattern.test(password);
+      if (password.length < 7 || password.length > 15) {
+        helper.password = "Password length must be between 7 to 15";
+      } else if (!result) {
+        helper.password =
+          "Password must contain atleast one numeric and one special character";
+      } else helper.password = "";
+    }
+    helper.confirmPassword = "";
+    setHelperText(helper);
+  };
+
+  const handleHelperText = Debounce(handleTextError);
+  const handleOnChange = (e, name) => {
+    switch (name) {
+      case "firstName":
+        setUser({ ...user, firstName: e.target.value });
+        break;
+      case "lastName":
+        setUser({ ...user, lastName: e.target.value });
+        break;
+      case "email":
+        setUser({ ...user, email: e.target.value });
+        break;
+      case "password":
+        setUser({ ...user, password: e.target.value });
+        break;
+      case "confirmPassword":
+        setUser({ ...user, confirmPassword: e.target.value });
+        break;
+      case "showPassword":
+        setUser({ ...user, showPassword: !user.showPassword });
+      default:
+        break;
+    }
+    // console.log("timeout clear");
+    clearTimeout(timer);
+
+    timer =setTimeout(()=>{handleTextError({...user, [name]: e.target.value}); console.log("Validated");
+  console.log();}, 1000);
+    handleHelperText({...user, [name]: e.target.value});
+  };
+
   
-const handleFirstNameChange =(e)=>{
-  setFirstName(e.target.value);
-  const result = [...(e.target.value)]
-        .every(char => (char >= 'a' && char <= 'z') 
-                    || (char >= 'A' && char <= 'Z'));
-
-  if(!result){
-    setFirstNameHelperText("First Name must only contain alphabets")
-  }
-  else if(e.target.value.length<3){
-    setFirstNameHelperText('First Name must contain atleast 3 characters')
-  }
-  else {
-    setFirstNameHelperText('');
-  }
-}
-const handleLastNameChange =(e)=>{
-  setLastName(e.target.value);
-  const result = [...(e.target.value)]
-        .every(char => (char >= 'a' && char <= 'z') 
-                    || (char >= 'A' && char <= 'Z'));
-
-  if(!result){
-    setLastNameHelperText("Last Name must only contain alphabets")
-  }
-  else if(e.target.value.length<3){
-    setLastNameHelperText('Last Name must contain atleast 3 characters')
-  }
-  else {
-    setLastNameHelperText('');
-  }
-}
-const handleEmailChange =(e)=>{
-  setEmail(e.target.value);
-  const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const result = pattern.test(e.target.value);
-  if(result===false){
-    setEmailHelperText('Invalid Email');
-  }
-  else {
-    setEmailHelperText('');
-  }
-}
-
-const handlePasswordChange = (e)=>{
-  setPassword(e.target.value);
-  const pattern = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{7,15}$/;
-  const result = pattern.test(e.target.value);
-  if(e.target.value.length<7 || e.target.value.length>15){
-    setPasswordHelperText("Password length must be between 7 to 15");
-  }
-  else if(!result){
-    setPasswordHelperText("Password must contain atleast one numeric and one special character")
-  }
-  else setPasswordHelperText('');
-}
-const handleClickShowPassword =()=>{
-  setShowPassword(!showPassword);
-}
-const handleConfirmPasswordChange = (e)=>{
-  setConfirmPassword(e.target.value);
-  setConfirmPasswordHelperText('');
-}
-
+  // const timer = setInterval(()=>{handleTextError()},1000)
   const handleSubmit = (event) => {
     event.preventDefault();
-    if(password!==confirmPassword){
-      setConfirmPasswordHelperText("Password and Confirm Password doesn't match")
-    }
-    else{
-      let users = JSON.parse(localStorage.getItem('dev')); 
-      if(users===null)users={};      
-      if(users[email]!==undefined){
-        setEmailHelperText("Email already exists!")
-      }
-      else{
-      users[email]={firstName, lastName, password};
-      localStorage.setItem("dev",JSON.stringify(users));
-      navigate('/login');
+    if (user.password !== user.confirmPassword) {
+      setHelperText({
+        ...helperText,
+        confirmPassword: "Password and Confirm Password doesn't match",
+      });
+    } else {
+      const value=JSON.parse(localStorage.getItem("dev"));
+      setUsers(value===null?{}:value);
+      if (users[user.email] !== undefined) {
+        setHelperText({ ...helperText, email: "Email already exists!" });
+      } else {
+        // users[user.email] = { firstName: user.firstName,lastName: user.lastName, password:user.password };
+        // localStorage.setItem("dev", JSON.stringify(users));
+        setUsers({...users, [user.email] :{ firstName: user.firstName,lastName: user.lastName, password:user.password }})
+        setUsers ((data)=>{localStorage.setItem("dev",JSON.stringify(data)); return data;});
+        navigate("/login");
       }
     }
   };
- 
+
   return (
     <ThemeProvider theme={defaultTheme}>
       <Container component="main" maxWidth="xs">
@@ -149,12 +191,14 @@ const handleConfirmPasswordChange = (e)=>{
                   required
                   fullWidth
                   id="firstName"
-                  value={firstName}
+                  value={user.firstName}
                   label="First Name"
                   autoFocus
-                  onChange={handleFirstNameChange}
-                  error = {firstNameHelperText.length>0}
-                  helperText = {firstNameHelperText}
+                  onChange={(e) => {
+                    handleOnChange(e, "firstName");
+                  }}
+                  error={helperText.firstName.length > 0}
+                  helperText={helperText.firstName}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -165,10 +209,10 @@ const handleConfirmPasswordChange = (e)=>{
                   label="Last Name"
                   name="lastName"
                   autoComplete="family-name"
-                  value={lastName}
-                  onChange={handleLastNameChange}
-                  error = {lastNameHelperText.length>0}
-                  helperText = {lastNameHelperText}
+                  value={user.lastName}
+                  onChange={(e) => handleOnChange(e, "lastName")}
+                  error={helperText.lastName.length > 0}
+                  helperText={helperText.lastName}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -179,10 +223,10 @@ const handleConfirmPasswordChange = (e)=>{
                   label="Email Address"
                   name="email"
                   autoComplete="email"
-                  value={email}
-                  onChange={handleEmailChange}
-                  error ={emailHelperText.length>0}
-                  helperText = {emailHelperText}
+                  value={user.email}
+                  onChange={(e) => handleOnChange(e, "email")}
+                  error={helperText.email.length > 0}
+                  helperText={helperText.email}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -191,23 +235,29 @@ const handleConfirmPasswordChange = (e)=>{
                   fullWidth
                   name="password"
                   label="Password"
-                  type={showPassword?"text":"password"}
+                  type={user.showPassword ? "text" : "password"}
                   id="password"
                   autoComplete="new-password"
-                  value ={password}
-                  onChange={handlePasswordChange}
-                  error={passwordHelperText.length>0}
-                  helperText = {passwordHelperText}
+                  value={user.password}
+                  onChange={(e) => handleOnChange(e, "password")}
+                  error={helperText.password.length > 0}
+                  helperText={helperText.password}
                   InputProps={{
                     endAdornment: (
                       <InputAdornment position="end">
-                        {password.length>0 && <IconButton
-                          aria-label="toggle password visibility"
-                          onClick={handleClickShowPassword}
-                          edge="end"
-                        >
-                          {showPassword ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>}
+                        {user.password.length > 0 && (
+                          <IconButton
+                            aria-label="toggle password visibility"
+                            onClick={(e) => handleOnChange(e, "showPassword")}
+                            edge="end"
+                          >
+                            {user.showPassword ? (
+                              <VisibilityOff />
+                            ) : (
+                              <Visibility />
+                            )}
+                          </IconButton>
+                        )}
                       </InputAdornment>
                     ),
                   }}
@@ -221,25 +271,32 @@ const handleConfirmPasswordChange = (e)=>{
                   label="Confirm Password"
                   type="password"
                   id="confirmPassword"
-                  value ={confirmPassword}
-                  onChange={handleConfirmPasswordChange}
-                  error={confirmPasswordHelperText.length>0}
-                  helperText = {confirmPasswordHelperText}
-                  // autoComplete="new-password"
+                  value={user.confirmPassword}
+                  onChange={(e) => handleOnChange(e, "confirmPassword")}
+                  error={helperText.confirmPassword.length > 0}
+                  helperText={helperText.confirmPassword}
                 />
               </Grid>
-              
             </Grid>
             <Button
               type="submit"
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
-              disabled = {!(firstName.length>0 && firstNameHelperText.length ===0 
-                         && lastName.length>0 && lastNameHelperText.length ===0 
-                         && email.length>0 && emailHelperText.length===0
-                        && password.length>0 && passwordHelperText.length===0 
-                        && confirmPassword.length>0 && confirmPasswordHelperText.length===0)}
+              disabled={
+                !(
+                  user.firstName.length > 0 &&
+                  helperText.firstName.length === 0 &&
+                  user.lastName.length > 0 &&
+                  helperText.lastName.length === 0 &&
+                  user.email.length > 0 &&
+                  helperText.email.length === 0 &&
+                  user.password.length > 0 &&
+                  helperText.password.length === 0 &&
+                  user.confirmPassword.length > 0 &&
+                  helperText.confirmPassword.length === 0
+                )
+              }
             >
               Sign Up
             </Button>

@@ -7,10 +7,12 @@ import Signup from './components/Signup.jsx'
 import Login from './components/Login.jsx'
 import User from './components/User.jsx'
 import EditUser from './components/EditUser.jsx'
+import UsersContext from './context/UsersContext.js'
 function App() {
-
+const [users,setUsers] = useState({});
   // localStorage.setItem("dev",JSON.stringify([]));
   return (
+    <UsersContext.Provider value={{users,setUsers}}>
     <div >
       <Router>
         <Routes>
@@ -22,6 +24,7 @@ function App() {
         </Routes>
       </Router>
     </div>
+    </UsersContext.Provider>
   )
 }
 

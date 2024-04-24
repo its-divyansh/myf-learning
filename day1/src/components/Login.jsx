@@ -15,49 +15,67 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useNavigate,Link as RouterLink } from "react-router-dom";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { IconButton, InputAdornment } from "@mui/material";
+import Debounce from "../../modules/Debounce";
 
 const defaultTheme = createTheme();
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [emailHelperText, setEmailHelperText] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword]= useState(false);
-  const [passwordHelperText, setPasswordHelperText] = useState("");
   const navigate = useNavigate();
+  const [user, setUser] = useState({
+    email: "",
+    password: "",
+    showPassword: false,
+  });
 
-  const handleEmailChange = (e) => {
-    setEmail(e.target.value);
-    const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const result = pattern.test(e.target.value);
-    if (result === false) {
-      setEmailHelperText("Invalid Email");
-    } else {
-      setEmailHelperText("");
+  const [helperText, setHelperText] = useState({email: ""});
+  const handleTextError = () => {
+    const {email, password} = user;
+    const helper = {};
+    
+    if (email.length === 0) helper.email = "";
+    else {
+      let pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      let result = pattern.test(email);
+      if (result === false) {
+        helper.email = "Invalid Email";
+      } else {
+        helper.email = "";
+      }
     }
+    setHelperText(helper);
   };
-  const handlePasswordChange = (e) => {
-    setPasswordHelperText('');
-    setPassword(e.target.value);
-
-  };
-  const handleClickShowPassword =()=>{
-    setShowPassword(!showPassword);
+  const handleHelperText = Debounce(handleTextError,500);
+  
+  const handleOnChange =(e,name)=>{
+    switch (name) {
+      case "email":
+        setUser({ ...user, email: e.target.value });
+        break;
+      case "password":
+        setUser({ ...user, password: e.target.value });
+        break;
+      case "showPassword":
+        setUser({ ...user, showPassword: !user.showPassword });
+      default:
+        break;
+    }
+    handleHelperText();
   }
+  
+ 
+
   const handleSubmit = (event) => {
     event.preventDefault();
     const users = JSON.parse(localStorage.getItem("dev"));
-    if (users[email]===undefined)
+    if (user.email && (users[user.email]===undefined || users[user.email].password !==user.password ))
     {
-      setEmailHelperText("Email is not registered!");
-      setPassword("");
+      setHelperText({...helperText, email:"Wrong username or password!"});
+      setUser({...user, password:""});
     } 
-    else if( users[email].password !==password) {
-      setPasswordHelperText("Wrong Password!");
-      setPassword("");
-    }
     else{
-      navigate('/user', {state:{email}});
+      // navigate('/user', {state:{email:user.email}});
+      localStorage.setItem('token',user.email);
+      navigate('/user');
     }
   };
 
@@ -93,10 +111,10 @@ export default function Login() {
                 label="Email Address"
                 name="email"
                 autoComplete="email"
-                value={email}
-                onChange={handleEmailChange}
-                error={emailHelperText.length > 0}
-                helperText={emailHelperText}
+                value={user.email}
+                onChange={(e)=>handleOnChange(e,"email")}
+                error={helperText.email.length > 0}
+                helperText={helperText.email}
               />
             </Grid>
             <TextField
@@ -105,22 +123,21 @@ export default function Login() {
               fullWidth
               name="password"
               label="Password"
-              type={showPassword?"text":"password"}
+              type={user.showPassword?"text":"password"}
               id="password"
               autoComplete="current-password"
-              value={password}
-              onChange={handlePasswordChange}
-              error={passwordHelperText.length > 0}
-              helperText={passwordHelperText}
+              value={user.password}
+              onChange={(e)=>handleOnChange(e,"password")}
+              
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    {password.length>0 && <IconButton
+                    { user.password.length>0 && <IconButton
                       aria-label="toggle password visibility"
-                      onClick={handleClickShowPassword}
+                      onClick={(e)=>handleOnChange(e,"showPassword")}
                       edge="end"
                     >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                      {user.showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>}
                   </InputAdornment>
                 ),
@@ -135,7 +152,7 @@ export default function Login() {
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
-              disabled = {email.length===0 || password.length===0 || emailHelperText.length>0 || passwordHelperText.length>0}
+              disabled = {user.email.length===0 || user.password.length===0 || helperText.length>0 }
             >
               Sign In
             </Button>

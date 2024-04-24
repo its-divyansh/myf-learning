@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { styled } from "@mui/material/styles";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -36,46 +36,52 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 }));
 
 const User = () => {
-  const location = useLocation();
   const navigate = useNavigate();
   const [currUser, setCurrUser] = useState({});
   const [users, setUsers] = useState({});
-  const [rows, setRows]= useState([]);
+  const [rows, setRows] = useState([]);
   const [showDialogBox, setShowDialogBox] = useState(false);
-  const [delId,setDelId] = useState("");
+  const [delId, setDelId] = useState("");
+  const [id, setId] = useState(localStorage.getItem("token"));
+
   const handleLogoutClick = () => {
+    localStorage.removeItem("token");
     navigate("/login");
   };
 
   const handleEditClick = (curr_user) => {
-    navigate('/user/editUser', {state:{user:curr_user,email:location.state.email}});
+    navigate("/user/editUser", { state: { user: curr_user, email: id } });
   };
   const handleDeleteClick = (id) => {
     setDelId(id);
     setShowDialogBox(true);
   };
-  const handleNoClick =()=>{
+  const handleNoClick = () => {
     setDelId("");
     setShowDialogBox(false);
-  }
-  const handleYesClick = ()=>{
-      setShowDialogBox(false);
-  let id = delId;
-   let  arr= users;
-   delete arr[id];
-   setUsers(arr);
-   localStorage.setItem("dev", JSON.stringify(users));
-   if (id === location.state.email) {      
-     navigate("/login");
-   } else {
-     setRows( rows.filter((data)=> id!==data.email));
-   }
-  }
-  useEffect(() => {
-    if (location.state === null) {
+  };
+  const handleYesClick = () => {
+    setShowDialogBox(false);
+    let id = delId;
+    let arr = users;
+    delete arr[id];
+    setUsers(arr);
+    localStorage.setItem("dev", JSON.stringify(users));
+    let email = localStorage.getItem("token");
+    if (id === email) {
+      localStorage.removeItem('token');
       navigate("/login");
     } else {
-      let email = location.state.email;
+      setRows(rows.filter((data) => id !== data.email));
+    }
+  };
+  useEffect(() => {
+    const email = localStorage.getItem("token");
+    // console.log(email);
+    if (email === null) {
+      navigate("/login");
+    } else {
+      // let email = value;
       const userObj = JSON.parse(localStorage.getItem("dev"));
       setCurrUser(userObj[email]);
       setUsers(userObj);
@@ -93,7 +99,11 @@ const User = () => {
 
   return (
     <>
-      <Dialogbox open={showDialogBox} handleNo={handleNoClick} handleYes={handleYesClick}/>
+      <Dialogbox
+        open={showDialogBox}
+        handleNo={handleNoClick}
+        handleYes={handleYesClick}
+      />
       <Grid container justifyContent={"space-between"} sx={{ mb: "20px" }}>
         <Grid item>
           <Typography variant="h3">
