@@ -22,8 +22,10 @@ import Debounce from "../../modules/Debounce";
 import UsersContext from "../context/UsersContext";
 const defaultTheme = createTheme();
 
-var timer;
+
+// var timer;
 export default function SignUp() {
+
   const navigate = useNavigate();
   const {users, setUsers}= useContext(UsersContext);
   const [user, setUser] = useState({
@@ -45,7 +47,7 @@ export default function SignUp() {
 
 
   const handleTextError = (user) => {
-    console.log("inside validation");
+    // console.log("inside validation");
     const { firstName, lastName, email, password, confirmPassword } = user;
     const helper = {};
     if (firstName.length === 0) {
@@ -56,10 +58,10 @@ export default function SignUp() {
       );
 
       if (!result) {
-        console.log("inside firstname");
+        // console.log("inside firstname");
         helper.firstName = "First name must only contain alphabets";
       } else if (firstName.length < 3) {
-        console.log("inside firstname length 3")
+        // console.log("inside firstname length 3")
         helper.firstName = "First Name must contain atleast 3 characters";
       } else {
         helper.firstName = "";
@@ -128,10 +130,10 @@ export default function SignUp() {
         break;
     }
     // console.log("timeout clear");
-    clearTimeout(timer);
+  //   clearTimeout(timer);
 
-    timer =setTimeout(()=>{handleTextError({...user, [name]: e.target.value}); console.log("Validated");
-  console.log();}, 1000);
+  //   timer =setTimeout(()=>{handleTextError({...user, [name]: e.target.value}); console.log("Validated");
+  // console.log();}, 1000);
     handleHelperText({...user, [name]: e.target.value});
   };
 
