@@ -20,15 +20,15 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 import Debounce from "../../modules/Debounce";
 import UsersContext from "../context/UsersContext";
+import { GET_LS } from "../utilities/localStorage";
 // import lodash from 'lodash'
 const defaultTheme = createTheme();
 
-
 // var timer;
-export default function SignUp() {
-
+export default function SignUp({ isAdmin }) {
   const navigate = useNavigate();
-  const {users, setUsers}= useContext(UsersContext);
+  // const {users, setUsers}= useContext(UsersContext);
+  const [users, setUsers] = useState({});
   const [user, setUser] = useState({
     firstName: "",
     lastName: "",
@@ -45,7 +45,6 @@ export default function SignUp() {
     password: "",
     confirmPassword: "",
   });
-
 
   const handleTextError = (user) => {
     console.log("inside validation");
@@ -107,12 +106,10 @@ export default function SignUp() {
     setHelperText(helper);
   };
 
-  const handleHelperText = useCallback(Debounce(handleTextError,2000),[]);
+  const handleHelperText = useCallback(Debounce(handleTextError, 1000), []);
 
-
-   
-  const handleOnChange = (e, name) => {
-    switch (name) {
+  const handleOnChange = (e) => {
+    switch (e.target.name) {
       case "firstName":
         setUser({ ...user, firstName: e.target.value });
         break;
@@ -134,15 +131,14 @@ export default function SignUp() {
         break;
     }
     // console.log("timeout clear");
-  //   clearTimeout(timer);
+    //   clearTimeout(timer);
 
-  //   timer =setTimeout(()=>{handleTextError({...user, [name]: e.target.value}); console.log("Validated");
-  // console.log();}, 1000);
+    //   timer =setTimeout(()=>{handleTextError({...user, [name]: e.target.value}); console.log("Validated");
+    // console.log();}, 1000);
     // console.log("increased");
-    handleHelperText({...user, [name]: e.target.value});
+    handleHelperText({ ...user, [name]: e.target.value });
   };
 
-  
   // const timer = setInterval(()=>{handleTextError()},1000)
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -152,16 +148,27 @@ export default function SignUp() {
         confirmPassword: "Password and Confirm Password doesn't match",
       });
     } else {
-      const value=JSON.parse(localStorage.getItem("dev"));
-      setUsers(value===null?{}:value);
-      if (users[user.email] !== undefined) {
+      let value = GET_LS();
+      if (value === null) value = {};
+      // setUsers(value===null?{}:value);
+      // setUsers((prev)=>{console.log(prev);return prev;})
+      if (value[user.email] !== undefined) {
         setHelperText({ ...helperText, email: "Email already exists!" });
       } else {
+        value[user.email] = {
+          firstName: user.firstName,
+          lastName: user.lastName,
+          password: user.password,
+        };
+        setUsers(value);
+        localStorage.setItem("dev", JSON.stringify(value));
         // users[user.email] = { firstName: user.firstName,lastName: user.lastName, password:user.password };
         // localStorage.setItem("dev", JSON.stringify(users));
-        setUsers({...users, [user.email] :{ firstName: user.firstName,lastName: user.lastName, password:user.password }})
-        setUsers ((data)=>{localStorage.setItem("dev",JSON.stringify(data)); return data;});
-        navigate("/login");
+        // setUsers((prev)=>{return {...prev, [user.email] :{ firstName: user.firstName,lastName: user.lastName, password:user.password }}})
+        // setUsers ((data)=>{localStorage.setItem("dev",JSON.stringify(data)); return data;});
+        if (isAdmin) {
+          navigate("/user");
+        } else navigate("/login");
       }
     }
   };
@@ -201,9 +208,7 @@ export default function SignUp() {
                   value={user.firstName}
                   label="First Name"
                   autoFocus
-                  onChange={(e) => {
-                    handleOnChange(e, "firstName");
-                  }}
+                  onChange={handleOnChange}
                   error={helperText.firstName.length > 0}
                   helperText={helperText.firstName}
                 />
@@ -217,7 +222,7 @@ export default function SignUp() {
                   name="lastName"
                   autoComplete="family-name"
                   value={user.lastName}
-                  onChange={(e) => handleOnChange(e, "lastName")}
+                  onChange={handleOnChange}
                   error={helperText.lastName.length > 0}
                   helperText={helperText.lastName}
                 />
@@ -231,7 +236,7 @@ export default function SignUp() {
                   name="email"
                   autoComplete="email"
                   value={user.email}
-                  onChange={(e) => handleOnChange(e, "email")}
+                  onChange={handleOnChange}
                   error={helperText.email.length > 0}
                   helperText={helperText.email}
                 />
@@ -246,7 +251,7 @@ export default function SignUp() {
                   id="password"
                   autoComplete="new-password"
                   value={user.password}
-                  onChange={(e) => handleOnChange(e, "password")}
+                  onChange={handleOnChange}
                   error={helperText.password.length > 0}
                   helperText={helperText.password}
                   InputProps={{
@@ -254,8 +259,9 @@ export default function SignUp() {
                       <InputAdornment position="end">
                         {user.password.length > 0 && (
                           <IconButton
+                            name="showPassword"
                             aria-label="toggle password visibility"
-                            onClick={(e) => handleOnChange(e, "showPassword")}
+                            onClick={handleOnChange}
                             edge="end"
                           >
                             {user.showPassword ? (
@@ -279,7 +285,7 @@ export default function SignUp() {
                   type="password"
                   id="confirmPassword"
                   value={user.confirmPassword}
-                  onChange={(e) => handleOnChange(e, "confirmPassword")}
+                  onChange={handleOnChange}
                   error={helperText.confirmPassword.length > 0}
                   helperText={helperText.confirmPassword}
                 />

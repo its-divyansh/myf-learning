@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -62,12 +62,11 @@ export default function Login() {
     handleHelperText();
   }
   
- 
 
   const handleSubmit = (event) => {
     event.preventDefault();
     const users = JSON.parse(localStorage.getItem("dev"));
-    if (user.email && (users[user.email]===undefined || users[user.email].password !==user.password ))
+    if (users!== null && (users[user.email]===undefined || users[user.email].password !==user.password ))
     {
       setHelperText({...helperText, email:"Wrong username or password!"});
       setUser({...user, password:""});
@@ -78,7 +77,10 @@ export default function Login() {
       navigate('/user');
     }
   };
-
+  useEffect(()=>{
+    if(localStorage.getItem('token')!==null)
+     navigate('/user');
+  },[])
   return (
     <ThemeProvider theme={defaultTheme}>
       <Container component="main" maxWidth="xs">
