@@ -109,6 +109,8 @@ export default function SignUp({ isAdmin }) {
   const handleHelperText = useCallback(Debounce(handleTextError, 1000), []);
 
   const handleOnChange = (e) => {
+    console.log(e);
+    // console.log(3);
     switch (e.target.name) {
       case "firstName":
         setUser({ ...user, firstName: e.target.value });
@@ -125,20 +127,17 @@ export default function SignUp({ isAdmin }) {
       case "confirmPassword":
         setUser({ ...user, confirmPassword: e.target.value });
         break;
-      case "showPassword":
-        setUser({ ...user, showPassword: !user.showPassword });
+      // case "showPassword":
+      //   setUser({ ...user, showPassword: !user.showPassword });
       default:
         break;
     }
-    // console.log("timeout clear");
-    //   clearTimeout(timer);
-
-    //   timer =setTimeout(()=>{handleTextError({...user, [name]: e.target.value}); console.log("Validated");
-    // console.log();}, 1000);
-    // console.log("increased");
-    handleHelperText({ ...user, [name]: e.target.value });
+    handleHelperText({ ...user, [e.target.name]: e.target.value });
   };
-
+ 
+  const handlePasswordToggle = ()=>{
+    setUser({ ...user, showPassword: !user.showPassword });
+  }
   // const timer = setInterval(()=>{handleTextError()},1000)
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -261,7 +260,7 @@ export default function SignUp({ isAdmin }) {
                           <IconButton
                             name="showPassword"
                             aria-label="toggle password visibility"
-                            onClick={handleOnChange}
+                            onClick={handlePasswordToggle}
                             edge="end"
                           >
                             {user.showPassword ? (

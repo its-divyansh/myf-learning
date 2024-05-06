@@ -13,7 +13,7 @@ import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
 import AdbIcon from "@mui/icons-material/Adb";
 import NewsPage from "./NewsPage";
-
+import { useNavigate } from "react-router-dom";
 // const settings = [{"Dashboard",}, {"Logout"];
 const categories = [
   "general",
@@ -24,11 +24,12 @@ const categories = [
   "sports",
   "technology",
 ];
-function Navbar({ category, setCategory, handleLogoutClick, handleToggleClick }) {
+function Navbar({ handleLogoutClick, handleToggleClick,handleAddUser }) {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
-  const [news, setNews] = React.useState({});
-  const [heading, setHeading] = React.useState("General");
+  // const [news, setNews] = React.useState({});
+  // const [heading, setHeading] = React.useState("General");
+  const navigate=useNavigate();
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
   };
@@ -45,7 +46,8 @@ function Navbar({ category, setCategory, handleLogoutClick, handleToggleClick })
   };
 
   const handleClick=(e, category)=>{
-    setCategory(category);
+    navigate("/user/"+category+"/1");
+    handleCloseNavMenu();
   }
 
   return (
@@ -164,6 +166,9 @@ function Navbar({ category, setCategory, handleLogoutClick, handleToggleClick })
                 {/* {settings.map((setting) => ( */}
                   <MenuItem  onClick={()=>{handleToggleClick();handleCloseUserMenu();}}>
                     <Typography textAlign="center">Dashboard</Typography>
+                  </MenuItem>
+                  <MenuItem  onClick={()=>{handleAddUser();handleCloseUserMenu();}}>
+                    <Typography textAlign="center">Add User</Typography>
                   </MenuItem>
                   <MenuItem  onClick={()=>{handleLogoutClick();handleCloseUserMenu()}}>
                     <Typography textAlign="center">Logout</Typography>

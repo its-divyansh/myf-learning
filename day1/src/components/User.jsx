@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { styled } from "@mui/material/styles";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -63,6 +63,12 @@ const User = () => {
   const [news, setNews] = useState({});
   const [currCategory, setCategory] = useState("general");
 
+  const params = useParams();
+  console.log(params);
+  let {category, pageNumber} = params;
+  // pageNumber = pageNumber?pageNumber:1;
+
+  // console.log(useParams());
   const handleClick = async (e, category) => {
     
     if(category !== currCategory){
@@ -115,12 +121,15 @@ const User = () => {
     setToggle(!toggle);
   };
   useEffect( () => {
+    console.log("Hii");
     const email = localStorage.getItem("token");
     // console.log(email);
     if (email === null) {
       navigate("/login");
     } else {
-      // let email = value;
+
+      setCategory(category?category:"general");
+      if(!pageNumber)pageNumber=1;
       const userObj = JSON.parse(localStorage.getItem("dev"));
       setCurrUser(userObj[email]);
       setUsers(userObj);
@@ -133,22 +142,12 @@ const User = () => {
       } else {
         setRows([{ ...userObj[email], email }]);
       }
-
-    //  const func= async()=>{
-    //   const url = `https://newsapi.org/v2/everything?apikey=${api_key}&size=10&language=en`;
-    //   let result = await fetch(url);
-    //   result = await result.json();
-    //   if (result){ setNews(result); console.log(result);}
-    //   else {
-    //     console.log("some error", result);
-    //   }};
-    //   func();
     }
-  }, []);
+  }, [currCategory, pageNumber]);
 
   return (
     <>
-      <Navbar category={currCategory} setCategory={setCategory} handleLogoutClick={handleLogoutClick} handleToggleClick={handleToggleClick}/>
+      <Navbar handleAddUser={handleAddUser} handleLogoutClick={handleLogoutClick} handleToggleClick={handleToggleClick}/>
       <Dialogbox
         open={showDialogBox}
         handleNo={handleNoClick}
@@ -220,7 +219,7 @@ const User = () => {
           </Table>
         </TableContainer>
       )}
-      <NewsPage category={currCategory} country={country} pageSize={pageSize}/>
+     {!toggle &&  <NewsPage category={currCategory} country={country} pageSize={pageSize} pageNumber={pageNumber}/>}
      
     </>
   );
