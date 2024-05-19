@@ -21,6 +21,7 @@ import { useNavigate, Link as RouterLink } from "react-router-dom";
 import Debounce from "../../modules/Debounce";
 import UsersContext from "../context/UsersContext";
 import { GET_LS } from "../utilities/localStorage";
+import axios from 'axios';
 // import lodash from 'lodash'
 const defaultTheme = createTheme();
 
@@ -109,36 +110,13 @@ export default function SignUp({ isAdmin }) {
   const handleHelperText = useCallback(Debounce(handleTextError, 1000), []);
 
   const handleOnChange = (e) => {
-    console.log(e);
-    // console.log(3);
-    switch (e.target.name) {
-      case "firstName":
-        setUser({ ...user, firstName: e.target.value });
-        break;
-      case "lastName":
-        setUser({ ...user, lastName: e.target.value });
-        break;
-      case "email":
-        setUser({ ...user, email: e.target.value });
-        break;
-      case "password":
-        setUser({ ...user, password: e.target.value });
-        break;
-      case "confirmPassword":
-        setUser({ ...user, confirmPassword: e.target.value });
-        break;
-      // case "showPassword":
-      //   setUser({ ...user, showPassword: !user.showPassword });
-      default:
-        break;
-    }
+    setUser({ ...user, [e.target.name]: e.target.value });
     handleHelperText({ ...user, [e.target.name]: e.target.value });
   };
  
   const handlePasswordToggle = ()=>{
     setUser({ ...user, showPassword: !user.showPassword });
   }
-  // const timer = setInterval(()=>{handleTextError()},1000)
   const handleSubmit = (event) => {
     event.preventDefault();
     if (user.password !== user.confirmPassword) {
@@ -147,37 +125,55 @@ export default function SignUp({ isAdmin }) {
         confirmPassword: "Password and Confirm Password doesn't match",
       });
     } else {
-      let value = GET_LS();
-      if (value === null) value = {};
-      // setUsers(value===null?{}:value);
-      // setUsers((prev)=>{console.log(prev);return prev;})
-      if (value[user.email] !== undefined) {
-        setHelperText({ ...helperText, email: "Email already exists!" });
-      } else {
-        value[user.email] = {
-          firstName: user.firstName,
-          lastName: user.lastName,
-          password: user.password,
-        };
-        setUsers(value);
-        localStorage.setItem("dev", JSON.stringify(value));
-        // users[user.email] = { firstName: user.firstName,lastName: user.lastName, password:user.password };
-        // localStorage.setItem("dev", JSON.stringify(users));
-        // setUsers((prev)=>{return {...prev, [user.email] :{ firstName: user.firstName,lastName: user.lastName, password:user.password }}})
-        // setUsers ((data)=>{localStorage.setItem("dev",JSON.stringify(data)); return data;});
-        if (isAdmin) {
-          navigate("/user");
-        } else navigate("/login");
-      }
+      let data = {...user};
+      delete data.confirmPassword;
+      delete data.showPassword;
+      
+         axios.post(
+          "http://localhost/backend/?type=signup",{...data}
+         ).then(res=>{
+          if (isAdmin) {
+            navigate("/user");
+          } else navigate("/login");
+         })
+      
+      .catch(err=>{
+        if(err.response && err.response.data.code==1062)
+          setHelperText({...helperText, email: "Email already exists"});
+        else
+         console.log(err);
+      });
+
+      // let value = GET_LS();
+      // if (value === null) value = {};
+      // // setUsers(value===null?{}:value);
+      // // setUsers((prev)=>{console.log(prev);return prev;})
+      // if (value[user.email] !== undefined) {
+      //   setHelperText({ ...helperText, email: "Email already exists!" });
+      // } else {
+      //   value[user.email] = {
+      //     firstName: user.firstName,
+      //     lastName: user.lastName,
+      //     password: user.password,
+      //   };
+      //   setUsers(value);
+      //   localStorage.setItem("dev", JSON.stringify(value));
+      //   // users[user.email] = { firstName: user.firstName,lastName: user.lastName, password:user.password };
+      //   // localStorage.setItem("dev", JSON.stringify(users));
+      //   // setUsers((prev)=>{return {...prev, [user.email] :{ firstName: user.firstName,lastName: user.lastName, password:user.password }}})
+      //   // setUsers ((data)=>{localStorage.setItem("dev",JSON.stringify(data)); return data;});
+        
+      // }
     }
   };
 
   return (
-    <ThemeProvider theme={defaultTheme}>
-      <Container component="main" maxWidth="xs">
+    <ThemeProvider theme={defaultTheme} >
+      <Container component="main" maxWidth="xs" >
         <CssBaseline />
         <Box
           sx={{
+            
             marginTop: 8,
             display: "flex",
             flexDirection: "column",
@@ -279,6 +275,7 @@ export default function SignUp({ isAdmin }) {
                 <TextField
                   required
                   fullWidth
+                  autoComplete="new-password"
                   name="confirmPassword"
                   label="Confirm Password"
                   type="password"

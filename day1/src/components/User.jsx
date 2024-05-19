@@ -17,6 +17,7 @@ import Navbar from "./Navbar.jsx";
 // import EditUser from "./EditUser.jsx";
 import NewsPage from "./NewsPage.jsx";
 import { BrowserRouter as Router, Routes,Route } from "react-router-dom";
+import axios from "axios";
 // const api_key= process.env.REACT_APP_API_KEY;
 
 
@@ -53,19 +54,21 @@ const categories = [
 let country='in', pageSize= 12;
 const User = () => {
   const navigate = useNavigate();
-  const [currUser, setCurrUser] = useState({});
-  const [users, setUsers] = useState({});
+  const [currUser, setCurrUser] = useState(0);
+  // const [users, setUsers] = useState({});
   const [rows, setRows] = useState([]);
   const [showDialogBox, setShowDialogBox] = useState(false);
   const [delId, setDelId] = useState("");
   const [id, setId] = useState(localStorage.getItem("token"));
   const [toggle, setToggle] = useState(false);
-  const [news, setNews] = useState({});
+  // const [news, setNews] = useState({});
   const [currCategory, setCategory] = useState("general");
 
   const params = useParams();
-  console.log(params);
+  // console.log(params);
   let {category, pageNumber} = params;
+  if(!category)category = "general";
+  if(!pageNumber) pageNumber  = 1;
   // pageNumber = pageNumber?pageNumber:1;
 
   // console.log(useParams());
@@ -104,44 +107,43 @@ const User = () => {
   };
   const handleYesClick = () => {
     setShowDialogBox(false);
-    let id = delId;
-    let arr = users;
-    delete arr[id];
-    setUsers(arr);
-    localStorage.setItem("dev", JSON.stringify(users));
-    let email = localStorage.getItem("token");
-    if (id === email) {
+    let token = localStorage.getItem('token');
+    axios.delete(`http://localhost/backend/?del_id=${delId}`, {headers : {token : `Bearer ${token}`}})
+    .then(res=>{
+      // console.log("user deleted successfully");
+    })
+    .catch(err => {console.log(err);})
+    if (currUser === delId) {
       localStorage.removeItem("token");
       navigate("/login");
     } else {
-      setRows(rows.filter((data) => id !== data.email));
+      const arr = rows.filter(row => row.id !== delId);
+      setRows(arr);
     }
   };
   const handleToggleClick = () => {
     setToggle(!toggle);
   };
   useEffect( () => {
-    console.log("Hii");
-    const email = localStorage.getItem("token");
-    // console.log(email);
-    if (email === null) {
+    console.log(category, pageNumber);
+    let token = localStorage.getItem("token");
+    if (token === null) {
       navigate("/login");
     } else {
+    //  console.log(token);
 
-      setCategory(category?category:"general");
-      if(!pageNumber)pageNumber=1;
-      const userObj = JSON.parse(localStorage.getItem("dev"));
-      setCurrUser(userObj[email]);
-      setUsers(userObj);
-      if (email === "admin@gmail.com") {
-        const arr = [];
-        for (let email in userObj) {
-          arr.push({ email, ...userObj[email] });
+      // setCategory(category?category:"general");
+      // if(!pageNumber)pageNumber=1;
+      
+      axios.get('http://localhost/backend/', {headers : {token : `Bearer ${token}`}})
+      .then((res)=>{setCurrUser(res.data.user);setRows(res.data.results);})
+      .catch(err=> {
+        if(err.response.data.status){
+          localStorage.removeItem('token');
+          navigate('/login');
         }
-        setRows(arr);
-      } else {
-        setRows([{ ...userObj[email], email }]);
-      }
+        else console.log(err);
+      });
     }
   }, [currCategory, pageNumber]);
 
@@ -153,54 +155,35 @@ const User = () => {
         handleNo={handleNoClick}
         handleYes={handleYesClick}
       />
-      {/* <Grid container justifyContent={"space-between"} sx={{ mb: "20px" }}>
-        <Grid item>
-          <Typography variant="h3">
-            Hello {currUser.firstName + " " + currUser.lastName + "  "}
-          </Typography>
-        </Grid>
-        <Grid item sx={{ mt: "5px" }}>
-          <Button_component
-            name={toggle ? "Hide Details" : "Show Details"}
-            onclick={handleToggleClick}
-          />
-        </Grid>
-        {localStorage.getItem("token") === "admin@gmail.com" && (
-          <Grid item sx={{ mt: "5px" }}>
-            <Button_component name="Add User" onclick={handleAddUser} />
-          </Grid>
-        )}
-        <Grid item sx={{ mt: "5px" }}>
-          <Button_component name="logout" onclick={handleLogoutClick} />
-        </Grid>
-      </Grid> */}
 
       {toggle && (
         <TableContainer component={Paper}>
           <Table sx={{ minWidth: 700 }} aria-label="customized table">
             <TableHead>
               <TableRow>
-                <StyledTableCell>First Name</StyledTableCell>
+                <StyledTableCell align="right">User Id</StyledTableCell>
+                <StyledTableCell align = "right">First Name</StyledTableCell>
                 <StyledTableCell align="right">Last Name</StyledTableCell>
                 <StyledTableCell align="right">Email</StyledTableCell>
-                <StyledTableCell align="right">Password</StyledTableCell>
                 <StyledTableCell align="right"></StyledTableCell>
                 <StyledTableCell align="right"></StyledTableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {rows.map((row, index) => (
-                <StyledTableRow key={row.email}>
-                  <StyledTableCell component="th" scope="row">
+              {rows.map((row) => (
+                
+                <StyledTableRow key={row.id}>
+                  <StyledTableCell align="right" component="th" scope="row">
+                    {row.id}
+                  </StyledTableCell>
+                  <StyledTableCell align="right" >
                     {row.firstName}
                   </StyledTableCell>
                   <StyledTableCell align="right">
                     {row.lastName}
                   </StyledTableCell>
                   <StyledTableCell align="right">{row.email}</StyledTableCell>
-                  <StyledTableCell align="right">
-                    {row.password}
-                  </StyledTableCell>
+                  
                   <StyledTableCell align="right">
                     <Button_component
                       name="edit"
@@ -210,7 +193,7 @@ const User = () => {
                   <StyledTableCell align="right">
                     <Button_component
                       name="delete"
-                      onclick={() => handleDeleteClick(row.email)}
+                      onclick={() => handleDeleteClick(row.id)}
                     />
                   </StyledTableCell>
                 </StyledTableRow>
@@ -219,7 +202,7 @@ const User = () => {
           </Table>
         </TableContainer>
       )}
-     {!toggle &&  <NewsPage category={currCategory} country={country} pageSize={pageSize} pageNumber={pageNumber}/>}
+     {!toggle &&  <NewsPage category={category} country={country} pageSize={pageSize} pageNumber={pageNumber}/>}
      
     </>
   );

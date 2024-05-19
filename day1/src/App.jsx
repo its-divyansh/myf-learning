@@ -20,7 +20,6 @@ function App() {
     setUsers(data);
   }, []);
   return (
-    // <UsersContext.Provider value={{users,setUsers}}>
     <div>
       <Router>
         <Routes>
@@ -28,10 +27,10 @@ function App() {
           <Route actual path="/signup" element={<Signup isAdmin={false} />} />
           <Route actual path="/login" element={<Login />} />
           {/* <Route actual path="/user"> */}
-          <Route key="123" actual path="/user/editUser" element={<EditUser />} />
-          <Route key="234" actual path="/user/:category" element={<User />} />
-          <Route key="456" actual path="/user/:category/:pageNumber" element={<User />} />
-          <Route key="567" actual path="/user" element={<User/>}/>
+            <Route  actual path="/user/editUser" element={<EditUser />} />
+            <Route actual path="/user/:category" element={<User />} />
+            <Route actual path="/user/:category/:pageNumber" element={<User />} />
+            <Route  actual path="/user" element={<User/>}/>
           {/* </Route> */}
           <Route
             actual

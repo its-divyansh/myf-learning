@@ -9,6 +9,7 @@ const apiKey = import.meta.env.VITE_APP_API_KEY;
 
 const NewsPage = ({ country, category, pageSize, pageNumber }) => {
   pageSize = Number(pageSize);
+  pageNumber = Number(pageNumber);
   let [articles, setArticles] = useState([]);
   let [loading, setLoading] = useState(true);
   // let [page, setPage] = useState(props.pageNumber);
@@ -45,13 +46,11 @@ const NewsPage = ({ country, category, pageSize, pageNumber }) => {
     }
     catch(error){
       console.log(error);
-    }
-    
+    }    
     setLoading(false);
   };
 
   useEffect(() => {
-    // console.log(props);
     fetchData();
   }, [category, pageNumber]);
 
@@ -70,9 +69,6 @@ const NewsPage = ({ country, category, pageSize, pageNumber }) => {
         ))}
       </Box>
       <Box sx={{ display: "flex", justifyContent: "space-evenly" }}>
-
-        {/* <Button_component name="prev" disabled={pageNumber<=1} onclick={()=>navigate("/user/"+category+"/"+String(Number(pageNumber)-1))}/>
-    <Button_component name="next" disabled={pageNumber*pageSize>=totalResults} onclick={()=>navigate('/user/'+category+"/"+String(Number(pageNumber)+1))}/> */}
 
         {!loading && (
           <Pagination

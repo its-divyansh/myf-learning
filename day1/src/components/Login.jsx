@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -16,6 +16,7 @@ import { useNavigate,Link as RouterLink } from "react-router-dom";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { IconButton, InputAdornment } from "@mui/material";
 import Debounce from "../../modules/Debounce";
+import axios from "axios";
 
 const defaultTheme = createTheme();
 
@@ -44,38 +45,30 @@ export default function Login() {
     }
     setHelperText(helper);
   };
-  const handleHelperText = Debounce(handleTextError,500);
+  const handleHelperText = useCallback( Debounce(handleTextError,1000),[]);
   
   const handleOnChange =(e,name)=>{
-    switch (name) {
-      case "email":
-        setUser({ ...user, email: e.target.value });
-        break;
-      case "password":
-        setUser({ ...user, password: e.target.value });
-        break;
-      case "showPassword":
-        setUser({ ...user, showPassword: !user.showPassword });
-      default:
-        break;
-    }
+    setUser({ ...user, [name]: e.target.value });
     handleHelperText();
   }
   
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    const users = JSON.parse(localStorage.getItem("dev"));
-    if (users!== null && (users[user.email]===undefined || users[user.email].password !==user.password ))
-    {
-      setHelperText({...helperText, email:"Wrong username or password!"});
-      setUser({...user, password:""});
-    } 
-    else{
-      // navigate('/user', {state:{email:user.email}});
-      localStorage.setItem('token',user.email);
-      navigate('/user');
-    }
+    const data = {...user};
+    delete data.showPassword;
+
+    axios.post('http://localhost/backend/?type=login',
+      {
+        ...data
+      }
+  )
+    .then(res=>{localStorage.setItem('token',res.data.token); navigate('/user')})
+    .catch (err =>{
+      if(err.response.data.status)
+       setHelperText({email:err.response.data.message});
+      else console.log(err)});
+    
   };
   useEffect(()=>{
     if(localStorage.getItem('token')!==null)
